@@ -11,7 +11,7 @@
 
 ---
 
-### 📊 Monitoring in Action
+### Monitoring in Action
 ![Grafana Dashboard Preview](https://raw.githubusercontent.com/kliencow/atmos/main/docs/dashboard_preview.png)
 *Beautiful, pre-configured dashboards for CO2, PM2.5, VOC, NOX, and local system health.*
 
