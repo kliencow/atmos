@@ -1,4 +1,4 @@
-module waltnorblad.com/atmos
+module github.com/kliencow/atmos
 
 go 1.24.4
 

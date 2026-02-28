@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"waltnorblad.com/atmos/internal/influx"
-	"waltnorblad.com/atmos/internal/sensor"
-	"waltnorblad.com/atmos/internal/sys"
+	"github.com/kliencow/atmos/internal/influx"
+	"github.com/kliencow/atmos/internal/sensor"
+	"github.com/kliencow/atmos/internal/sys"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"waltnorblad.com/atmos/internal/sensor"
+	"github.com/kliencow/atmos/internal/sensor"
 )
 
 // Client handles writing data to InfluxDB
