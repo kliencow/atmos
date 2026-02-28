@@ -1,4 +1,4 @@
-# 🚀 Atmos: High-Performance Air Quality Monitoring
+# Atmos: High-Performance Air Quality Monitoring
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/kliencow/atmos)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -17,17 +17,17 @@
 
 ---
 
-### ✨ Key Features
+### Key Features
 
-- ⚡ **Go-Native Performance**: Minimal CPU/Memory footprint, perfect for Raspberry Pi or home servers.
-- 🛡️ **Firmware Resilient**: Custom unmarshaling logic that gracefully handles `voc` vs `tvoc_index` across different AirGradient versions.
-- 🌡️ **Integrated Host Health**: Automatically collects Linux thermal zone data (CPU/GPU) alongside air quality.
-- 📊 **Zero-Config Dashboards**: Pre-provisioned Grafana templates that work out of the box.
-- 🐳 **Docker & Systemd Ready**: Deploy it your way—as a containerized stack or a native background service.
+- **Go-Native Performance**: Minimal CPU/Memory footprint, perfect for Raspberry Pi or home servers.
+- **Firmware Resilient**: Custom unmarshaling logic that gracefully handles `voc` vs `tvoc_index` across different AirGradient versions.
+- **Integrated Host Health**: Automatically collects Linux thermal zone data (CPU/GPU) alongside air quality.
+- **Zero-Config Dashboards**: Pre-provisioned Grafana templates that work out of the box.
+- **Docker & Systemd Ready**: Deploy it your way—as a containerized stack or a native background service.
 
 ---
 
-### ⏱️ Quick Start (30 Seconds)
+### Quick Start
 
 The fastest way to get your environment live is using our Docker Compose stack.
 
@@ -46,7 +46,7 @@ go run ./cmd/atmos collect --interval 1m
 
 ---
 
-### 🛠️ Architecture
+### Architecture
 
 Atmos follows a modular "Collector-Writer" pattern. It polls your AirGradient sensor via its **Local HTTP API**, normalizes the data, and pipes it into InfluxDB 2.x for long-term time-series analysis.
 
@@ -81,7 +81,7 @@ Atmos is powered by a structured, modern CLI built with [Cobra](https://github.c
 
 ---
 
-### 🤝 Community & Support
+### Community & Support
 
 We are huge fans of [AirGradient's](https://www.airgradient.com/) commitment to open-source hardware. If you're looking for high-quality, repairable air quality monitors, support them directly!
 
