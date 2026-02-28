@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USER:-wally}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG:-atmos}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET:-air_quality}
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - INFLUX_ORG=${INFLUX_ORG:-atmos}
+      - INFLUX_BUCKET=${INFLUX_BUCKET:-air_quality}
+      - INFLUX_TOKEN=${INFLUX_TOKEN}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      # This is the secret sauce for zero-config:
+      - ./deploy/influxdb/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
+      - ./deploy/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./deploy/grafana/full_dashboard.json:/var/lib/grafana/dashboards/air_quality.json
+
+volumes:
+  influxdb-data:
+  grafana-data:

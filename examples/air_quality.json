@@ -1,0 +1,21 @@
+{
+  "panels": [
+    {
+      "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "query": "from(bucket: \"air_quality\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"air_quality\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Raw Sensor Data - Clean Version",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "title": "Air Quality Monitor",
+  "uid": "air_quality",
+  "version": 100
+}

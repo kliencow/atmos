@@ -1,0 +1,16 @@
+[Unit]
+Description=AirGradient Sensor Collector
+After=network.target influxdb.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=USER_PLACEHOLDER
+WorkingDirectory=DIR_PLACEHOLDER
+EnvironmentFile=-DIR_PLACEHOLDER/.env
+ExecStart=/usr/local/bin/atmos collect --interval 1m
+
+[Install]
+WantedBy=multi-user.target
