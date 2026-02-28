@@ -1,6 +1,6 @@
 .env
 sensorplay
-atmos
+/atmos
 *.exe
 *.test
 bin/
