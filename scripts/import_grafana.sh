@@ -19,7 +19,7 @@ until curl -s "$GRAFANA_URL/api/health" | grep "ok" > /dev/null; do
 done
 
 echo "--- Provisioning InfluxDB Datasource ---"
-curl -X POST -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/datasources" -d '{
+curl -X PUT -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/datasources/uid/$DS_UID" -d '{
   "name": "InfluxDB",
   "type": "influxdb",
   "access": "proxy",
@@ -27,7 +27,7 @@ curl -X POST -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/da
   "uid": "'$DS_UID'",
   "jsonData": { "version": "Flux", "organization": "'$INFLUX_ORG'", "defaultBucket": "'$INFLUX_BUCKET'" },
   "secureJsonData": { "token": "'$INFLUX_TOKEN'" }
-}' || echo "Datasource might already exist, continuing..."
+}' || echo "Datasource update failed, continuing..."
 
 echo "--- Provisioning Dashboard ---"
 curl -X POST -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/dashboards/db" -d @deploy/grafana/full_dashboard.json

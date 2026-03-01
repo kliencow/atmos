@@ -1,0 +1,23 @@
+[Unit]
+Description=AirGradient Sensor Collector - %i
+After=network.target influxdb.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=wally
+WorkingDirectory=/home/wally/projects/atmos
+
+# 1. Load global defaults (Influx tokens, etc.)
+EnvironmentFile=-/home/wally/projects/atmos/.env
+
+# 2. Load instance-specific config (SENSOR_IP or SENSOR_SERIAL)
+EnvironmentFile=-/etc/atmos/%i.env
+
+# 3. Use %i as the location tag automatically
+ExecStart=/usr/local/bin/atmos collect --location %i --interval 1m
+
+[Install]
+WantedBy=multi-user.target

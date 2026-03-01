@@ -16,48 +16,50 @@ cp .env.example .env
 ```
 
 **Key variables to configure in `.env`:**
-*   `SENSOR_IP`: The IP address of your AirGradient sensor (e.g., `192.168.1.100`).
 *   `INFLUX_TOKEN`: Your InfluxDB API token.
 *   `INFLUX_ORG`: Your InfluxDB organization (default: `atmos`).
 *   `INFLUX_BUCKET`: Your InfluxDB bucket (default: `air_quality`).
 
 ---
 
-### 2. Docker Deployment (Quick Start)
+## Multi-Sensor Deployment (Native)
 
-The Docker Compose stack includes InfluxDB and Grafana, pre-configured with the Atmos dashboard.
+Atmos uses **systemd templates** to run multiple collectors (one per room) from a single binary and service file.
+
+### 1. Install the Atmos Binary
+```bash
+make build
+sudo cp atmos /usr/local/bin/
+```
+
+### 2. Install the Service Template
+```bash
+# This installs atmos@.service
+sudo cp deploy/systemd/atmos@.service /etc/systemd/system/
+sudo systemctl daemon-reload
+```
+
+### 3. Configure Your Locations
+For each AirGradient sensor, create a configuration file in `/etc/atmos/`. The filename will be used as the **Location Tag** in Grafana.
+
+**Example: `/etc/atmos/living_room.env`**
+```bash
+# Use either IP or Serial (for mDNS)
+SENSOR_SERIAL=12345
+# SENSOR_IP=192.168.1.50
+```
+
+### 4. Start the Collectors
+Enable and start the service instance for each location:
 
 ```bash
-# Start the stack
-docker-compose up -d
-
-# Verify services are running
-docker-compose ps
+sudo systemctl enable --now atmos@living_room
+sudo systemctl enable --now atmos@bedroom
 ```
 
 ---
 
-### 3. Native Linux Deployment
-
-If you prefer to run services directly on your host (e.g., Ubuntu/Debian), use the provided installation scripts:
-
-#### **A. Install InfluxDB**
-```bash
-bash scripts/setup_influx.sh
-```
-After installation, run `influx setup` to initialize your organization, bucket, and admin user.
-
-#### **B. Install Grafana**
-```bash
-bash scripts/setup_grafana.sh
-```
-Access Grafana at `http://localhost:3000` (Default: `admin` / `admin`).
-
----
-
-## Pushing Configuration Updates
-
-If you make changes to the dashboard JSON or the datasource configuration, you can sync them to your running Grafana instance without manually using the UI.
+## Dashboard Configuration
 
 ### **Pushing Dashboard & Datasource Updates**
 The `scripts/import_grafana.sh` script automates the provisioning of the InfluxDB datasource and the Air Quality dashboard.
@@ -67,10 +69,9 @@ The `scripts/import_grafana.sh` script automates the provisioning of the InfluxD
 bash scripts/import_grafana.sh
 ```
 
-**What this script does:**
-1.  **Loads `.env`**: Automatically exports variables for use in the API calls.
-2.  **Configures InfluxDB Datasource**: Uses the Grafana API to create or update the InfluxDB Flux datasource.
-3.  **Imports Dashboard**: Uploads the content of `deploy/grafana/full_dashboard.json` to Grafana.
+**Multi-Sensor Support in Grafana:**
+- **Grouping**: Each panel is pre-configured to group data by the `location` tag.
+- **Filtering**: Use the **Location** dropdown at the top of the dashboard to filter for a specific room or select "All" to overlay every sensor on a single graph.
 
 ### **Developing Configuration Changes**
 1.  Modify `deploy/grafana/full_dashboard.json` (e.g., change panel titles, queries, or units).
@@ -81,8 +82,13 @@ bash scripts/import_grafana.sh
 
 ## Troubleshooting
 
-### **Permission Denied (Docker)**
-If you get a permission error with Docker, ensure your user is in the `docker` group or use `sudo`.
+### **Check Logs for a Specific Location**
+```bash
+journalctl -u atmos@living_room -f
+```
+
+### **Organization Not Found**
+Ensure `INFLUX_ORG` in your `.env` matches your InfluxDB setup. Atmos expects the organization to be named `atmos` by default.
 
 ### **Port Already in Use**
 If `8086` (InfluxDB) or `3000` (Grafana) are already in use, check for native services:

@@ -31,7 +31,7 @@ func (c *Client) Close() {
 }
 
 // Write records sensor data and optional system temperature to InfluxDB
-func (c *Client) Write(ctx context.Context, ip string, data sensor.AGData, sysTemp *float64) error {
+func (c *Client) Write(ctx context.Context, location string, sensor string, data sensor.AGData, sysTemp *float64) error {
 	fields := map[string]interface{}{
 		"voc":      data.VOC,
 		"nox":      data.NOX,
@@ -45,7 +45,10 @@ func (c *Client) Write(ctx context.Context, ip string, data sensor.AGData, sysTe
 	}
 
 	p := influxdb2.NewPoint("air_quality",
-		map[string]string{"sensor": ip},
+		map[string]string{
+			"location": location,
+			"sensor":   sensor,
+		},
 		fields,
 		time.Now())
 
