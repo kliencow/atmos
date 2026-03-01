@@ -10,7 +10,7 @@ import (
 
 func TestAGDataUnmarshal(t *testing.T) {
 	// Test camelCase (like firmware 3.6.2)
-	jsonData := `{"tvocIndex": 198.33, "noxIndex": 1.5, "atmp": 20.5, "rhum": 45.2, "rco2": 800.0, "pm02": 0.5}`
+	jsonData := `{"tvocIndex": 198.33, "noxIndex": 1.5, "atmp": 20.5, "rhum": 45.2, "rco2": 800.0, "pm01": 1.0, "pm02": 0.5, "pm10": 2.0, "pm003Count": 100}`
 	var data AGData
 	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
 		t.Fatalf("failed to unmarshal: %v", err)
@@ -21,6 +21,15 @@ func TestAGDataUnmarshal(t *testing.T) {
 	}
 	if data.Temp != 20.5 {
 		t.Errorf("expected 20.5, got %f", data.Temp)
+	}
+	if data.PM01 != 1.0 {
+		t.Errorf("expected 1.0, got %f", data.PM01)
+	}
+	if data.PM10 != 2.0 {
+		t.Errorf("expected 2.0, got %f", data.PM10)
+	}
+	if data.PM003 != 100 {
+		t.Errorf("expected 100, got %f", data.PM003)
 	}
 
 	// Test snake_case fallback

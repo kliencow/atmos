@@ -3,7 +3,7 @@
 ## Current State
 - **Core App**: Go collector for AirGradient ONE v9 (I-9PSL-DE). Supports both `IP` and `Serial` (mDNS).
 - **Data Path**: AirGradient (HTTP JSON) -> Go Collector -> InfluxDB 2.x (Flux) -> Grafana.
-- **Features**: One-shot mode, Interval mode, System Temp discovery (polled every interval), InfluxDB integration, Grafana provisioning.
+- **Features**: One-shot mode, Interval mode, System Temp discovery, Comprehensive PM Monitoring (PM1.0, PM2.5, PM10, PM0.3 count), InfluxDB integration, Grafana provisioning.
 - **Test Coverage**: Added unit tests for JSON parsing and system temperature extraction.
 - **Hardware Verified**: Tested against Firmware v3.6.2 (Note: uses `float64` for all numeric fields due to firmware averaging).
 - **Dashboard Refined**: Fully parameterized Grafana dashboard (Bucket, Measurement, Time Range) with Fahrenheit conversion.

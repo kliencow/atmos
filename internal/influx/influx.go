@@ -38,7 +38,10 @@ func (c *Client) Write(ctx context.Context, location string, sensor string, data
 		"temp":     data.Temp,
 		"humidity": data.Humidity,
 		"co2":      data.CO2,
+		"pm01":     data.PM01,
 		"pm25":     data.PM25,
+		"pm10":     data.PM10,
+		"pm003":    data.PM003,
 	}
 	if sysTemp != nil {
 		fields["sys_temp"] = *sysTemp

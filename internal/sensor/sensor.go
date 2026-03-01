@@ -17,7 +17,10 @@ type AGData struct {
 	Temp     float64 `json:"atmp"`
 	Humidity float64 `json:"rhum"`
 	CO2      float64 `json:"rco2"`
+	PM01     float64 `json:"pm01"`
 	PM25     float64 `json:"pm02"`
+	PM10     float64 `json:"pm10"`
+	PM003    float64 `json:"pm003Count"`
 }
 
 // UnmarshalJSON handles field variations across firmware versions

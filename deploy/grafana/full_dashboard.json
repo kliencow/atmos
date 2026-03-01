@@ -135,6 +135,72 @@
             "showLegend": true
           }
         }
+      },
+      {
+        "type": "timeseries",
+        "title": "PM1.0 (µg/m\u00b3)",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+        "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r.location =~ /^${location}$/) |> filter(fn: (r) => r._field == \"pm01\")", "refId": "A" }],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "calcs": ["lastNotNull"],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "title": "PM10 (µg/m\u00b3)",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+        "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r.location =~ /^${location}$/) |> filter(fn: (r) => r._field == \"pm10\")", "refId": "A" }],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "calcs": ["lastNotNull"],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "title": "PM0.3 Count (count/0.1L)",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+        "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r.location =~ /^${location}$/) |> filter(fn: (r) => r._field == \"pm003\")", "refId": "A" }],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "calcs": ["lastNotNull"],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          }
+        }
       }
     ],
     "templating": {

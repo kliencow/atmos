@@ -16,7 +16,10 @@ The following fields are typically present in the response. Note that firmware v
 | `atmp` / `atmpCompensated` | Ambient Temperature | Celsius (°C) | Sensirion SHT40 |
 | `rhum` / `rhumCompensated` | Relative Humidity | % | Sensirion SHT40 |
 | `rco2` | CO2 Concentration | ppm | SenseAir S8 |
+| `pm01` | PM1.0 Concentration | µg/m³ | Plantower PMS5003 |
 | `pm02` / `pm02Compensated` | PM2.5 Concentration | µg/m³ | Plantower PMS5003 |
+| `pm10` | PM10 Concentration | µg/m³ | Plantower PMS5003 |
+| `pm003Count` | PM0.3 Particle Count | count/0.1L | Plantower PMS5003 |
 | `tvoc_index` / `tvocIndex` | VOC Index | 1 - 500 | Sensirion SGP41 |
 | `nox_index` / `noxIndex` | NOX Index | 1 - 500 | Sensirion SGP41 |
 | `tvocRaw` / `noxRaw` | Raw Sensor Signal | Ticks | Sensirion SGP41 |
