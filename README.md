@@ -21,7 +21,7 @@
 
 - **Go-Native Performance**: Minimal CPU/Memory footprint, perfect for Raspberry Pi or home servers.
 - **Firmware Resilient**: Custom unmarshaling logic that gracefully handles `voc` vs `tvoc_index` across different AirGradient versions.
-- **Integrated Host Health**: Automatically collects Linux thermal zone data (CPU/GPU) alongside air quality.
+- **Integrated Host Health**: Automatically collects Linux thermal zone data (CPU/GPU) alongside air quality in every polling cycle.
 - **Zero-Config Dashboards**: Pre-provisioned Grafana templates that work out of the box.
 - **Docker & Systemd Ready**: Deploy it your way—as a containerized stack or a native background service.
 

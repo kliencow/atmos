@@ -40,13 +40,12 @@ var collectCmd = &cobra.Command{
 			defer influxClient.Close()
 		}
 
-		sysTemp, err := sys.GPUTemp()
-		if err != nil && debug {
-			log.Printf("DEBUG Sys Temp error: %v", err)
+		if !noHeaders {
+			fmt.Println("Timestamp,VOC,NOX,Temp_C,Humidity_Pct,CO2_PPM,PM2.5,Sys_Temp_C")
 		}
 
 		if interval <= 0 {
-			if err := runOnce(cmd.Context(), targetAddr, sysTemp, influxClient); err != nil {
+			if err := poll(cmd.Context(), targetAddr, influxClient); err != nil {
 				log.Printf("Error: %v", err)
 				if exitOnError {
 					os.Exit(1)
@@ -55,7 +54,24 @@ var collectCmd = &cobra.Command{
 			return
 		}
 
-		runLoop(cmd.Context(), targetAddr, sysTemp, influxClient)
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			if err := poll(cmd.Context(), targetAddr, influxClient); err != nil {
+				log.Printf("Error: %v", err)
+				if exitOnError {
+					os.Exit(1)
+				}
+			}
+
+			select {
+			case <-cmd.Context().Done():
+				return
+			case <-ticker.C:
+				continue
+			}
+		}
 	},
 }
 
@@ -68,14 +84,15 @@ func init() {
 	rootCmd.AddCommand(collectCmd)
 }
 
-func runOnce(ctx context.Context, addr string, sysTemp *float64, client *influx.Client) error {
+func poll(ctx context.Context, addr string, client *influx.Client) error {
 	data, err := sensor.Fetch(ctx, addr, debug)
 	if err != nil {
 		return err
 	}
 
-	if !noHeaders {
-		fmt.Println("Timestamp,VOC,NOX,Temp_C,Humidity_Pct,CO2_PPM,PM2.5,Sys_Temp_C")
+	sysTemp, err := sys.GPUTemp()
+	if err != nil && debug {
+		log.Printf("DEBUG Sys Temp error: %v", err)
 	}
 
 	printRow(data, sysTemp)
@@ -84,39 +101,6 @@ func runOnce(ctx context.Context, addr string, sysTemp *float64, client *influx.
 		return client.Write(ctx, addr, data, sysTemp)
 	}
 	return nil
-}
-
-func runLoop(ctx context.Context, addr string, sysTemp *float64, client *influx.Client) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	if !noHeaders {
-		fmt.Println("Timestamp,VOC,NOX,Temp_C,Humidity_Pct,CO2_PPM,PM2.5,Sys_Temp_C")
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			data, err := sensor.Fetch(ctx, addr, debug)
-			if err != nil {
-				log.Printf("Error: %v", err)
-				if exitOnError {
-					os.Exit(1)
-				}
-				continue
-			}
-
-			printRow(data, sysTemp)
-
-			if client != nil {
-				if err := client.Write(ctx, addr, data, sysTemp); err != nil {
-					log.Printf("Influx error: %v", err)
-				}
-			}
-		}
-	}
 }
 
 func printRow(data sensor.AGData, sysTemp *float64) {

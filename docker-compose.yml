@@ -28,7 +28,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       # This is the secret sauce for zero-config:
-      - ./deploy/influxdb/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
+      - ./deploy/grafana/datasources/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
       - ./deploy/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
       - ./deploy/grafana/full_dashboard.json:/var/lib/grafana/dashboards/air_quality.json
 
