@@ -1,4 +1,6 @@
 #!/bin/bash
+# Description: Installs and starts InfluxDB 2.x and CLI on Debian/Ubuntu systems.
+# Usage: ./scripts/setup_influx.sh
 set -e
 
 # Check for apt-get

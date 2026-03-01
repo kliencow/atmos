@@ -1,4 +1,6 @@
 #!/bin/bash
+# Description: Installs and starts Grafana Server on Debian/Ubuntu systems.
+# Usage: ./scripts/setup_grafana.sh
 set -e
 
 # Check for apt-get

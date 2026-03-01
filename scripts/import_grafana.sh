@@ -1,5 +1,7 @@
 #!/bin/bash
-# import_grafana.sh
+# Description: Provisions the InfluxDB datasource and AirQuality dashboard into a running Grafana instance.
+# Usage: ./scripts/import_grafana.sh
+# Note: Requires a .env file with INFLUX_TOKEN, INFLUX_ORG, and INFLUX_BUCKET.
 set -e
 
 # Load .env to get the Influx token
