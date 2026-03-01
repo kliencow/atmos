@@ -20,10 +20,15 @@
       },
       {
         "type": "timeseries",
-        "title": "PM2.5 (µg/m³)",
+        "title": "Temperature (°F)",
         "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
         "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
-        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"pm25\")", "refId": "A" }],
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"temp\") |> map(fn: (r) => ({ r with _value: r._value * 1.8 + 32.0 }))", "refId": "A" }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "fahrenheit"
+          }
+        },
         "options": {
           "legend": {
             "calcs": ["lastNotNull"],
@@ -35,15 +40,10 @@
       },
       {
         "type": "timeseries",
-        "title": "Temperature (°F)",
+        "title": "Humidity (%)",
         "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
         "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
-        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"temp\") |> map(fn: (r) => ({ r with _value: r._value * 1.8 + 32.0 }))", "refId": "A" }],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "fahrenheit"
-          }
-        },
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"humidity\")", "refId": "A" }],
         "options": {
           "legend": {
             "calcs": ["lastNotNull"],
@@ -85,10 +85,10 @@
       },
       {
         "type": "timeseries",
-        "title": "Humidity (%)",
+        "title": "PM2.5 (µg/m\u00b3)",
         "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
         "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
-        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"humidity\")", "refId": "A" }],
+        "targets": [{ "query": "from(bucket: \"${bucket}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"${measurement}\") |> filter(fn: (r) => r._field == \"pm25\")", "refId": "A" }],
         "options": {
           "legend": {
             "calcs": ["lastNotNull"],
