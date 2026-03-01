@@ -29,7 +29,7 @@
 
 ### Quick Start
 
-The fastest way to get your environment live is using our Docker Compose stack.
+The fastest way to get your environment live is using our Docker Compose stack. For detailed instructions on native installation and pushing configuration updates, see the [Deployment Guide](docs/DEPLOYMENT.md).
 
 ```bash
 # 1. Clone and Launch the stack
@@ -58,7 +58,7 @@ Atmos follows a modular "Collector-Writer" pattern. It polls your AirGradient se
 
 ---
 
-### ⌨️ CLI Reference
+### CLI Reference
 
 Atmos is powered by a structured, modern CLI built with [Cobra](https://github.com/spf13/cobra).
 
