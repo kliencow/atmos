@@ -7,11 +7,11 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=5
-User=wally
-WorkingDirectory=/home/wally/projects/atmos
+User=USER_PLACEHOLDER
+WorkingDirectory=DIR_PLACEHOLDER
 
 # 1. Load global defaults (Influx tokens, etc.)
-EnvironmentFile=-/home/wally/projects/atmos/.env
+EnvironmentFile=-DIR_PLACEHOLDER/.env
 
 # 2. Load instance-specific config (SENSOR_IP or SENSOR_SERIAL)
 EnvironmentFile=-/etc/atmos/%i.env
