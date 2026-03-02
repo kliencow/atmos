@@ -4,6 +4,17 @@ This guide provides step-by-step instructions for setting up the **Atmos** monit
 
 ---
 
+## System Requirements
+
+| Component | Minimum Version | Recommended |
+| :--- | :--- | :--- |
+| **AirGradient** | [ONE (v9) / DIY](about_airgradient.md) | Firmware 3.6.2+ |
+| **InfluxDB** | 2.0 | 2.7.x |
+| **Grafana** | 9.0 | 10.x |
+| **Go** | 1.21+ | 1.22+ |
+
+---
+
 ## Initial Setup
 
 You can choose between a **Docker-based** deployment (recommended for ease of use) or a **Native** deployment on a Linux host (e.g., a Raspberry Pi).

@@ -1,4 +1,4 @@
-# AirGradient ONE v9 (I-9PSL-DE) Specifications
+# AirGradient Hardware & API
 
 This document outlines the local API specifications for the AirGradient ONE v9 monitor based on research and empirical testing with firmware v3.6.2.
 

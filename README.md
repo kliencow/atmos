@@ -4,10 +4,18 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#) 
 
-**Atmos** is a lightweight, zero-dependency Go collector designed to bridge the gap between your **AirGradient ONE** sensors and a professional-grade **InfluxDB + Grafana** stack. 
+**Atmos** is a lightweight, zero-dependency Go collector designed to bridge the gap between your **AirGradient ONE (v9)** sensors and a professional-grade **InfluxDB + Grafana** stack. 
 
-> [!TIP]
-> **Why Atmos?** Unlike generic scripts, Atmos is built for long-term stability with local-first polling, native host-thermal monitoring, and resilient firmware handling.
+---
+
+### Prerequisites
+
+To use Atmos, you'll need the following:
+
+*   **AirGradient**: ONE (v9) or DIY (I-9PSL) with Firmware 3.x+. (See [Hardware & API Guide](docs/about_airgradient.md) for details).
+*   **InfluxDB**: 2.0 or higher (2.7.x recommended).
+*   **Grafana**: 9.0 or higher (10.x recommended).
+*   **OS**: Linux (AMD64/ARM64) for the collector service.
 
 ---
 

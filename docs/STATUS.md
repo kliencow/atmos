@@ -10,8 +10,8 @@
 
 ## 🛠 Tech Stack
 - **Backend**: Go 1.24+
-- **Database**: InfluxDB 2.8.0
-- **Visualization**: Grafana 12.4.0
+- **Database**: InfluxDB 2.7.x
+- **Visualization**: Grafana 10.x / 11.x (tested on 11.0.0)
 - **Config**: `.env` (handled by `godotenv`)
 
 ## Key Architectural Decisions
