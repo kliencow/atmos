@@ -12,7 +12,23 @@
         "fieldConfig": {
           "defaults": {
             "custom": {
-              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}",
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
+              ]
             }
           }
         },
@@ -35,7 +51,31 @@
           "defaults": {
             "unit": "fahrenheit",
             "custom": {
-              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}",
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "blue",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 65
+                },
+                {
+                  "color": "yellow",
+                  "value": 73
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
             }
           }
         },
@@ -57,7 +97,31 @@
         "fieldConfig": {
           "defaults": {
             "custom": {
-              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}",
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 30
+                },
+                {
+                  "color": "yellow",
+                  "value": 55
+                },
+                {
+                  "color": "red",
+                  "value": 65
+                }
+              ]
             }
           }
         },
@@ -123,7 +187,31 @@
         "fieldConfig": {
           "defaults": {
             "custom": {
-              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}"
+              "displayNameFromDS": "location=${__field.labels.location}, sensor=${__field.labels.sensor}",
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "light-green",
+                  "value": 5
+                },
+                {
+                  "color": "yellow",
+                  "value": 12
+                },
+                {
+                  "color": "red",
+                  "value": 35
+                }
+              ]
             }
           }
         },
