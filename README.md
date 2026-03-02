@@ -47,6 +47,7 @@ The pre-configured Grafana dashboard includes a **Location** dropdown. You can s
 
 The fastest way to get your environment live is using our Docker Compose stack. For detailed instructions on native installation and pushing configuration updates, see the [Deployment Guide](docs/DEPLOYMENT.md).
 
+#### Option A: Docker (Recommended)
 ```bash
 # 1. Clone and Launch the stack
 git clone https://github.com/kliencow/atmos.git && cd atmos
@@ -55,9 +56,20 @@ docker-compose up -d
 # 2. Configure your sensor
 cp .env.example .env
 # Edit .env with your SENSOR_IP and INFLUX_TOKEN
+```
 
-# 3. Start the collector
-go run ./cmd/atmos collect --interval 1m
+#### Option B: Manual (Bare Metal)
+If you're running on a dedicated Linux host (e.g., Raspberry Pi), use our automated setup:
+```bash
+# 1. Install InfluxDB, Grafana, and the Atmos Service
+make setup-system
+
+# 2. Initialize InfluxDB and update your .env
+influx setup
+cp .env.example .env
+
+# 3. Finalize the Dashboard
+make setup-dashboard
 ```
 
 ---

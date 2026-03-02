@@ -1,7 +1,7 @@
 {
   "dashboard": {
-    "uid": "air_quality_v9",
-    "title": "Air Quality ONE v9",
+    "uid": "air_quality_monitor",
+    "title": "Air Quality Monitor",
     "panels": [
       {
         "type": "timeseries",

@@ -30,6 +30,6 @@ curl -X PUT -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/dat
 }' || echo "Datasource update failed, continuing..."
 
 echo "--- Provisioning Dashboard ---"
-curl -X POST -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/dashboards/db" -d @deploy/grafana/full_dashboard.json
+curl -X POST -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/dashboards/db" -d @deploy/grafana/dashboards/air_quality.json
 
 echo "--- Done! Dashboard available at $GRAFANA_URL/d/air_quality_v9 ---"

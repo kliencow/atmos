@@ -74,7 +74,7 @@ bash scripts/import_grafana.sh
 - **Filtering**: Use the **Location** dropdown at the top of the dashboard to filter for a specific room or select "All" to overlay every sensor on a single graph.
 
 ### **Developing Configuration Changes**
-1.  Modify `deploy/grafana/full_dashboard.json` (e.g., change panel titles, queries, or units).
+1.  Modify `deploy/grafana/dashboards/air_quality.json` (e.g., change panel titles, queries, or units).
 2.  Run `bash scripts/import_grafana.sh`.
 3.  Refresh your browser at `http://localhost:3000/d/air_quality_v9` to see the changes.
 

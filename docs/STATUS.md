@@ -20,7 +20,8 @@
 3. **Data Source UID**: The InfluxDB data source is pinned to UID `P951FEA4DE68E13C5` to ensure dashboard portability.
 4. **Polling Architecture**: Refactored to use a unified `poll` loop for both one-shot and continuous collection. System health (thermal zones) is now fetched during every poll to ensure real-time accuracy.
 5. **Dashboard Flexibility**: Dashboard queries use `${bucket}` and `${measurement}` variables and standard Grafana time picker variables (`v.timeRangeStart`/`v.timeRangeStop`) for dynamic visualization.
-5. **Unit Normalization**: Temperature is stored in Celsius in InfluxDB, but converted to Fahrenheit in the Grafana dashboard via Flux `map()` for localized preference.
+6. **Unit Normalization**: Temperature is stored in Celsius in InfluxDB, but converted to Fahrenheit in the Grafana dashboard via Flux `map()` for localized preference.
+7. **Unified Storage (v10+)**: Modern Grafana uses a resource-based storage system (`resource`, `resource_blob` tables). Manual database cleanup may be required if provisioned dashboards become "stuck" after their source files are deleted.
 
 ## Deployment Paths
 - **Docker (Preferred)**: Uses `docker-compose.yml` for zero-config Influx/Grafana setup.
@@ -28,4 +29,6 @@
 
 ## Known Gotchas
 - **mDNS**: Depends on local host resolution (`avahi-daemon`). If `-serial` fails, fall back to `-ip`.
-- **Grafana UID**: If the dashboard shows "Data source not found," verify the UID in `full_dashboard.json` matches the one in `influxdb.yaml`.
+- **Grafana UID**: If the dashboard shows "Data source not found," verify the UID in `deploy/grafana/dashboards/air_quality.json` matches the one in `influxdb.yaml`.
+- **Ghost Provisioning**: Deleting a dashboard provisioning `.yaml` file does not always remove the dashboard from the UI. If it persists, you must manually delete the entry from the Grafana `resource` and `resource_blob` tables.
+- **Title Updates**: Changing a dashboard's `title` in a JSON file is often ignored by the Grafana cache unless the `uid` is also changed.
