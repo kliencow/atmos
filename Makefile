@@ -93,27 +93,29 @@ init-auth:
 
 # --- Sensor Management ---
 setup-sensor:
-	@if [ -z "$(NAME)" ]; then echo "Error: NAME is required. Usage: make setup-sensor NAME=room_name [IP=192.168.1.10] [SERIAL=12345]"; exit 1; fi
+	@if [ -z "$(NAME)" ]; then echo "Error: NAME is required. Usage: make setup-sensor NAME=room_name [IP=... SERIAL=...]"; exit 1; fi
 	@echo "Setting up sensor for: $(NAME)"
-	sudo mkdir -p /etc/atmos
-	@if [ ! -f /etc/atmos/$(NAME).env ]; then \
-		echo "# Identity flags for atmos@$(NAME).service" | sudo tee /etc/atmos/$(NAME).env; \
+	@sudo mkdir -p /etc/atmos
+	@# If IP or SERIAL is provided, always (re)create the file. Otherwise only create if missing.
+	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ] || [ ! -f /etc/atmos/$(NAME).env ]; then \
+		echo "# Identity flags for atmos@$(NAME).service" | sudo tee /etc/atmos/$(NAME).env > /dev/null; \
 		if [ ! -z "$(SERIAL)" ]; then \
-			echo "SENSOR_SERIAL=$(SERIAL)" | sudo tee -a /etc/atmos/$(NAME).env; \
-			echo "# SENSOR_IP=" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "SENSOR_SERIAL=$(SERIAL)" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
+			echo "# SENSOR_IP=" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
 		elif [ ! -z "$(IP)" ]; then \
-			echo "SENSOR_IP=$(IP)" | sudo tee -a /etc/atmos/$(NAME).env; \
-			echo "# SENSOR_SERIAL=" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "SENSOR_IP=$(IP)" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
+			echo "# SENSOR_SERIAL=" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
 		else \
-			echo "# Provide either SENSOR_SERIAL (mDNS) or SENSOR_IP" | sudo tee -a /etc/atmos/$(NAME).env; \
-			echo "SENSOR_SERIAL=CHANGE_ME" | sudo tee -a /etc/atmos/$(NAME).env; \
-			echo "# SENSOR_IP=192.168.1.100" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "# Provide either SENSOR_SERIAL (mDNS) or SENSOR_IP" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
+			echo "SENSOR_SERIAL=CHANGE_ME" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
+			echo "# SENSOR_IP=192.168.1.100" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
 		fi; \
-		echo "Created /etc/atmos/$(NAME).env"; \
+		echo "Configuration (re)set in /etc/atmos/$(NAME).env"; \
 	fi
-	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ]; then \
-		sudo systemctl enable --now atmos@$(NAME); \
-		echo "Sensor atmos@$(NAME) started. Check logs with: journalctl -u atmos@$(NAME) -f"; \
+	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ] || grep -qv "CHANGE_ME" /etc/atmos/$(NAME).env 2>/dev/null; then \
+		sudo systemctl enable --now atmos@$(NAME) > /dev/null 2>&1; \
+		sudo systemctl restart atmos@$(NAME); \
+		echo "Sensor atmos@$(NAME) started/restarted. Check logs with: journalctl -u atmos@$(NAME) -f"; \
 	else \
 		echo "Template created at /etc/atmos/$(NAME).env. Please edit it, then run:"; \
 		echo "  sudo systemctl enable --now atmos@$(NAME)"; \
