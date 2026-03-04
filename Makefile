@@ -3,7 +3,7 @@
 
 .PHONY: build test fmt vet lint help \
         install install-service install-stack \
-        config-influx config-grafana add-sensor \
+        config-influx config-grafana add-sensor remove-sensor \
         status vacuum delete-data clean
 
 # --- Variables ---
@@ -23,6 +23,7 @@ help:
 	@echo "  make config-influx   - 2. One-click Influx setup (INFLUX_USER=name INFLUX_PASS=pass)"
 	@echo "  make config-grafana  - 3. Sync dashboard with Grafana (GRAFANA_PASS=admin_pass)"
 	@echo "  make add-sensor      - 4. Register a sensor (NAME=room [IP=... or SERIAL=...])"
+	@echo "  make remove-sensor   - Remove a sensor and its configuration (NAME=room)"
 	@echo ""
 	@echo "Maintenance Targets:"
 	@echo "  make status          - Check health status of all components"
@@ -145,6 +146,17 @@ add-sensor:
 		echo "Template created at /etc/atmos/$(NAME).env. Please edit it, then run:"; \
 		echo "  sudo systemctl enable --now atmos@$(NAME)"; \
 	fi
+
+remove-sensor:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required."; \
+		echo "Usage: make remove-sensor NAME=room_name"; \
+		exit 1; \
+	fi
+	@echo "Removing sensor: $(NAME)"
+	-sudo systemctl disable --now atmos@$(NAME)
+	-sudo rm -f /etc/atmos/$(NAME).env
+	@echo "Sensor $(NAME) removed."
 
 # --- Maintenance & Cleanup ---
 status:
