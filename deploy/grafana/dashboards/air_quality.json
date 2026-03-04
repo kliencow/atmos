@@ -357,7 +357,11 @@
           "name": "bucket",
           "query": "buckets()",
           "type": "query",
-          "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" }
+          "datasource": { "type": "influxdb", "uid": "P951FEA4DE68E13C5" },
+          "current": {
+            "text": "air_quality",
+            "value": "air_quality"
+          }
         },
         {
           "name": "measurement",
