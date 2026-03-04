@@ -56,39 +56,28 @@ The pre-configured Grafana dashboard includes a **Location** dropdown. You can s
 
 ### Quick Start
 
-The fastest way to get your environment live is using our Docker Compose stack. For detailed instructions on native installation and pushing configuration updates, see the [Deployment Guide](docs/DEPLOYMENT.md).
+The fastest way to get your environment live is using our automated setup for Linux hosts (e.g., Raspberry Pi):
 
-#### Option A: Docker (Recommended)
 ```bash
-# 1. Clone and Launch the stack
+# 1. Clone the repository
 git clone https://github.com/kliencow/atmos.git && cd atmos
-docker-compose up -d
 
-# 2. Configure your credentials
-cp .env.example .env
-# Edit .env with your INFLUX_TOKEN
-```
-
-#### Option B: Manual (Bare Metal)
-If you're running on a dedicated Linux host (e.g., Raspberry Pi), use our automated setup:
-```bash
-# 1. Install InfluxDB, Grafana, and the Atmos Service
+# 2. Install InfluxDB, Grafana, and the Atmos Service
 make setup-system
 
-# 2. Initialize InfluxDB and update your .env
-influx setup
-cp .env.example .env
+# 3. Initialize Auth (Auto-configures .env)
+make init-auth USER=admin PASS=password
 
-# 3. Register your sensors
+# 4. Register your sensors
 make setup-sensor NAME=living_room IP=192.168.1.50
 
-# 4. Finalize the Dashboard
+# 5. Finalize the Dashboard
 make setup-dashboard
 ```
 
 ---
 
-### Health & Maintenance
+### Architecture
 
 You can monitor the status of your entire stack using the built-in status command:
 

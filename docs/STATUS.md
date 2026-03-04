@@ -23,9 +23,8 @@
 6. **Unit Normalization**: Temperature is stored in Celsius in InfluxDB, but converted to Fahrenheit in the Grafana dashboard via Flux `map()` for localized preference.
 7. **Unified Storage (v10+)**: Modern Grafana uses a resource-based storage system (`resource`, `resource_blob` tables). Manual database cleanup may be required if provisioned dashboards become "stuck" after their source files are deleted.
 
-## Deployment Paths
-- **Docker (Preferred)**: Uses `docker-compose.yml` for zero-config Influx/Grafana setup.
-- **Bare Metal**: Uses `Makefile` + `setup_*.sh` scripts for native Ubuntu deployment.
+## Deployment
+- **Bare Metal**: Primary deployment path using `Makefile` + `setup_*.sh` scripts for native Ubuntu/Debian systems (e.g., Raspberry Pi).
 
 ## Known Gotchas
 - **mDNS**: Depends on local host resolution (`avahi-daemon`). If `-serial` fails, fall back to `-ip`.

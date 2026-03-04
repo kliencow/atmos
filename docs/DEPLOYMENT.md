@@ -16,19 +16,27 @@ This guide provides step-by-step instructions for setting up the **Atmos** monit
 ---
 ## Initial Setup
 
-You can choose between a **Docker-based** deployment (recommended for ease of use) or a **Native** deployment on a Linux host (e.g., a Raspberry Pi).
+This guide provides instructions for a **Native** deployment on a Linux host (e.g., a Raspberry Pi).
 
 ### 1. Global Infrastructure Configuration
-Regardless of the deployment method, start by creating your global infrastructure file. This file contains the credentials for your database.
+Start by installing the core components:
 
 ```bash
-cp .env.example .env
+make setup-system
 ```
 
-**Key variables to configure in `.env`:**
-*   `INFLUX_TOKEN`: Your InfluxDB API token.
-*   `INFLUX_ORG`: Your InfluxDB organization (default: `atmos`).
-*   `INFLUX_BUCKET`: Your InfluxDB bucket (default: `air_quality`).
+### 2. Initialize InfluxDB & Auto-Config
+Instead of manual setup, use the helper to initialize your database and automatically write the credentials to your `.env` file:
+
+```bash
+# Replace with your desired admin credentials
+make init-auth USER=admin PASS=mysecurepassword
+```
+
+This command:
+1.  Bootstraps InfluxDB with your `USER` and `PASS`.
+2.  Generates a secure all-access API token.
+3.  Automatically updates your `.env` file with the Token, Org, and Bucket.
 
 ---
 
@@ -131,8 +139,8 @@ journalctl -u atmos@living_room -f
 Ensure `INFLUX_ORG` in your `.env` matches your InfluxDB setup. Atmos expects the organization to be named `atmos` by default.
 
 ### **Port Already in Use**
-If `8086` (InfluxDB) or `3000` (Grafana) are already in use, check for native services:
+If `8086` (InfluxDB) or `3000` (Grafana) are already in use, check for existing services:
 ```bash
 sudo lsof -i :8086 -i :3000
 ```
-Stop the native services (`sudo systemctl stop influxdb grafana-server`) before starting the Docker stack.
+You must stop conflicting services before InfluxDB or Grafana can start.

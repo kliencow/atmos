@@ -1,4 +1,4 @@
-.PHONY: build test fmt vet lint install-service clean help install-influx install-grafana setup-all setup-dashboard setup-system install-provisioning setup-sensor
+.PHONY: build test fmt vet lint install-service clean help install-influx install-grafana setup-all setup-dashboard setup-system install-provisioning setup-sensor init-auth status
 
 BINARY_NAME=atmos
 SERVICE_TEMPLATE=atmos@.service
@@ -8,6 +8,7 @@ help:
 	@echo "  make build           - Build the Go binary"
 	@echo "  make test            - Run unit tests"
 	@echo "  make setup-system    - FULL INSTALL: Influx, Grafana, Provisioning, and Service Template"
+	@echo "  make init-auth       - One-click Influx setup (e.g. make init-auth USER=wally PASS=password)"
 	@echo "  make setup-sensor    - Register a sensor (e.g. make setup-sensor NAME=office IP=192.168.1.50)"
 	@echo "  make setup-dashboard - Sync the latest dashboard via Grafana API"
 	@echo "  make status          - Check health status of all components"
@@ -37,10 +38,9 @@ lint:
 setup-system: install-influx install-grafana install-provisioning install-service
 	@echo ""
 	@echo "--- Bare Metal Installation Complete! ---"
-	@echo "1. Run 'influx setup' to initialize your database."
-	@echo "2. Copy .env.example to .env and update with your new INFLUX_TOKEN."
-	@echo "3. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
-	@echo "4. Run 'make setup-dashboard' to finalize the UI."
+	@echo "1. Run 'make init-auth USER=admin PASS=password' to initialize your database."
+	@echo "2. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
+	@echo "3. Run 'make setup-dashboard' to finalize the UI."
 	@echo "----------------------------------------"
 
 install-influx:
@@ -70,6 +70,10 @@ install-service: install
 	sudo sed -i "s|DIR_PLACEHOLDER|$(PWD)|g" /etc/systemd/system/$(SERVICE_TEMPLATE)
 	sudo systemctl daemon-reload
 	@echo "Service template installed."
+
+init-auth:
+	@if [ -z "$(USER)" ] || [ -z "$(PASS)" ]; then echo "Error: USER and PASS are required. Usage: make init-auth USER=name PASS=password"; exit 1; fi
+	bash scripts/init_influx.sh $(USER) $(PASS)
 
 # --- Sensor-level Management ---
 setup-sensor:
