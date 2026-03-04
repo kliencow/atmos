@@ -18,25 +18,27 @@ This guide provides step-by-step instructions for setting up the **Atmos** monit
 
 This guide provides instructions for a **Native** deployment on a Linux host (e.g., a Raspberry Pi).
 
-### 1. Global Infrastructure Configuration
+### 1. Stack Installation
 Start by installing the core components:
 
 ```bash
-make setup-system
+make install-stack
 ```
 
-### 2. Initialize InfluxDB & Auto-Config
-Instead of manual setup, use the helper to initialize your database and automatically write the credentials to your `.env` file:
+### 2. Configure InfluxDB & Auto-Auth
+Use the helper to initialize your database and automatically write the credentials to your `.env` file:
 
 ```bash
 # Replace with your desired admin credentials
-make init-auth USER=admin PASS=mysecurepassword
+make config-influx INFLUX_USER=admin INFLUX_PASS=mysecurepassword
 ```
 
-This command:
-1.  Bootstraps InfluxDB with your `USER` and `PASS`.
-2.  Generates a secure all-access API token.
-3.  Automatically updates your `.env` file with the Token, Org, and Bucket.
+### 3. Configure Grafana Dashboard
+Sync the datasource and pre-configured dashboard using your Grafana UI password (default is `admin`):
+
+```bash
+make config-grafana GRAFANA_PASS=admin
+```
 
 ---
 
@@ -57,26 +59,22 @@ sudo cp deploy/systemd/atmos@.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
-### 3. Identity Configuration (Per Sensor)
-For each AirGradient sensor, create a small environment file in `/etc/atmos/`. This file provides the "Identity" flags to the collector service.
-
-**Example: `/etc/atmos/living_room.env`**
-```bash
-# Provide either IP or Serial
-SENSOR_SERIAL=12345
-# SENSOR_IP=192.168.1.50
-```
-
-### 4. Start the Collectors
-The service automatically uses the filename (e.g., `living_room`) as the **Location Tag** in Grafana. You can use the `Makefile` to quickly register new sensors:
+### 3. Register Your Sensors
+For each AirGradient sensor, use the `Makefile` to quickly register and start new collectors.
 
 ```bash
 # Register via IP
-make setup-sensor NAME=living_room IP=192.168.1.50
+make add-sensor NAME=living_room IP=192.168.1.50
 
 # Register via Serial (mDNS)
-make setup-sensor NAME=bedroom SERIAL=12345
+make add-sensor NAME=bedroom SERIAL=12345
+
+# Remove a sensor
+make remove-sensor NAME=old_room
 ```
+
+### 4. Verify the Sensors
+The service automatically uses the filename (e.g., `living_room`) as the **Location Tag** in Grafana.
 
 Check the status or logs for a specific sensor:
 ```bash
@@ -84,33 +82,11 @@ sudo systemctl status atmos@living_room
 journalctl -u atmos@living_room -f
 ```
 
-```
-
 ---
 
-## Dashboard Configuration
+## Maintenance & Monitoring
 
-### **Pushing Dashboard & Datasource Updates**
-The `scripts/import_grafana.sh` script automates the provisioning of the InfluxDB datasource and the Air Quality dashboard.
-
-```bash
-# Ensure your .env file is correctly configured with your INFLUX_TOKEN
-bash scripts/import_grafana.sh
-```
-
-**Multi-Sensor Support in Grafana:**
-- **Grouping**: Each panel is pre-configured to group data by the `location` tag.
-- **Filtering**: Use the **Location** dropdown at the top of the dashboard to filter for a specific room or select "All" to overlay every sensor on a single graph.
-
-### **Developing Configuration Changes**
-1.  Modify `deploy/grafana/dashboards/air_quality.json` (e.g., change panel titles, queries, or units).
-2.  Run `bash scripts/import_grafana.sh`.
-3.  Refresh your browser at `http://localhost:3000/d/air_quality_v9` to see the changes.
-
----
-
-## Troubleshooting & Health Checks
-
+### **Check Global Status**
 The primary tool for verifying your installation is the **Status Command**. It checks the database, the dashboard, and every individual sensor collector.
 
 ```bash
@@ -130,22 +106,21 @@ make status
 | **`failed`** | **`failed`** | **Error**. The process crashed or could not start (check logs). |
 | **`inactive`**| **`dead`** | **Stopped**. The service has been manually disabled or stopped. |
 
-### **Check Logs for a Specific Sensor**
-```bash
-journalctl -u atmos@living_room -f
-```
-
 ### **Cleaning Up Erroneous Data**
-If you see spikes in your dashboard (e.g., from sensor calibration), you can surgically delete data points using the `clean-data` target.
+If you see spikes in your dashboard (e.g., from sensor calibration), you can surgically delete data points using the `delete-data` target.
 
 ```bash
 # Delete all data in a 2-minute window
-make clean-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z
+make delete-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z
 
 # Delete data for a specific location only
-make clean-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z PREDICATE='location="office"'
+make delete-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z PREDICATE='location="office"'
 ```
 *Note: Timestamps must be in RFC3339 format (UTC is recommended).*
+
+---
+
+## Troubleshooting
 
 ### **Organization Not Found**
 Ensure `INFLUX_ORG` in your `.env` matches your InfluxDB setup. Atmos expects the organization to be named `atmos` by default.

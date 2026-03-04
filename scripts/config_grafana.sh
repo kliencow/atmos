@@ -21,14 +21,27 @@ until curl -s "$GRAFANA_URL/api/health" | grep "ok" > /dev/null; do
 done
 
 echo "--- Provisioning InfluxDB Datasource ---"
+# Ensure we have defaults if env vars are missing
+ORG=${INFLUX_ORG:-atmos}
+BUCKET=${INFLUX_BUCKET:-air_quality}
+
 curl -X PUT -H "Content-Type: application/json" -u "$AUTH" "$GRAFANA_URL/api/datasources/uid/$DS_UID" -d '{
   "name": "InfluxDB",
   "type": "influxdb",
   "access": "proxy",
   "url": "http://localhost:8086",
   "uid": "'$DS_UID'",
-  "jsonData": { "version": "Flux", "organization": "'$INFLUX_ORG'", "defaultBucket": "'$INFLUX_BUCKET'" },
-  "secureJsonData": { "token": "'$INFLUX_TOKEN'" }
+  "basicAuth": false,
+  "isDefault": true,
+  "jsonData": {
+    "version": "Flux",
+    "organization": "'$ORG'",
+    "defaultBucket": "'$BUCKET'",
+    "tlsSkipVerify": true
+  },
+  "secureJsonData": {
+    "token": "'$INFLUX_TOKEN'"
+  }
 }' || echo "Datasource update failed, continuing..."
 
 echo "--- Provisioning Dashboard ---"

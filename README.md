@@ -63,21 +63,21 @@ The fastest way to get your environment live is using our automated setup for Li
 git clone https://github.com/kliencow/atmos.git && cd atmos
 
 # 2. Install InfluxDB, Grafana, and the Atmos Service
-make setup-system
+make install-stack
 
-# 3. Initialize Auth (Auto-configures .env)
-make init-auth USER=admin PASS=password
+# 3. Configure InfluxDB Auth
+make config-influx INFLUX_USER=admin INFLUX_PASS=password
 
-# 4. Register your sensors
-make setup-sensor NAME=living_room IP=192.168.1.50
+# 4. Configure Grafana Dashboard
+make config-grafana GRAFANA_PASS=admin
 
-# 5. Finalize the Dashboard
-make setup-dashboard
+# 5. Add your sensors
+make add-sensor NAME=living_room IP=192.168.1.50
 ```
 
 ---
 
-### Architecture
+### Health & Maintenance
 
 You can monitor the status of your entire stack using the built-in status command:
 

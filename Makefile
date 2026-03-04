@@ -2,9 +2,9 @@
 # Focuses on native systemd deployment for Linux (e.g. Raspberry Pi)
 
 .PHONY: build test fmt vet lint help \
-        install install-service setup-system init-auth init-grafana \
-        setup-sensor setup-dashboard status \
-        vacuum clean-data clean
+        install install-service install-stack \
+        config-influx config-grafana add-sensor remove-sensor \
+        status vacuum delete-data clean
 
 # --- Variables ---
 BINARY_NAME=atmos
@@ -19,15 +19,16 @@ help:
 	@echo "  make test            - Run unit tests"
 	@echo ""
 	@echo "Setup Targets (Run in order):"
-	@echo "  make setup-system    - 1. Install InfluxDB, Grafana, and service templates"
-	@echo "  make init-auth       - 2. One-click Influx setup (USER=name PASS=pass)"
-	@echo "  make init-grafana    - 3. Sync dashboard with Grafana (PASS=admin_pass)"
-	@echo "  make setup-sensor    - 4. Register a sensor (NAME=room [IP=... or SERIAL=...])"
+	@echo "  make install-stack   - 1. Install InfluxDB, Grafana, and service templates"
+	@echo "  make config-influx   - 2. One-click Influx setup (INFLUX_USER=name INFLUX_PASS=pass)"
+	@echo "  make config-grafana  - 3. Sync dashboard with Grafana (GRAFANA_PASS=admin_pass)"
+	@echo "  make add-sensor      - 4. Register a sensor (NAME=room [IP=... or SERIAL=...])"
+	@echo "  make remove-sensor   - Remove a sensor and its configuration (NAME=room)"
 	@echo ""
 	@echo "Maintenance Targets:"
 	@echo "  make status          - Check health status of all components"
 	@echo "  make vacuum          - Auto-clean spikes based on .env thresholds (DAYS=7)"
-	@echo "  make clean-data      - Delete data (START=... STOP=...)"
+	@echo "  make delete-data     - Wipe specific time range (START=... STOP=...)"
 	@echo "  make clean           - Remove binary and build artifacts"
 
 build: fmt vet
@@ -50,20 +51,26 @@ lint:
 	fi
 
 # --- Installation & Setup ---
-setup-system: install-influx install-grafana install-provisioning install-service
+install-stack:
+	@echo "Refreshing sudo credentials..."
+	@sudo -v
+	$(MAKE) install-influx
+	$(MAKE) install-grafana
+	$(MAKE) install-provisioning
+	$(MAKE) install-service
 	@echo ""
 	@echo "--- Bare Metal Installation Complete! ---"
 	@echo "Next Steps:"
-	@echo "1. Run 'make init-auth USER=admin PASS=password' to initialize your database."
-	@echo "2. Run 'make init-grafana PASS=your_grafana_admin_password' to sync the dashboard."
-	@echo "3. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
+	@echo "1. Run 'make config-influx INFLUX_USER=admin INFLUX_PASS=password'"
+	@echo "2. Run 'make config-grafana GRAFANA_PASS=admin'"
+	@echo "3. Run 'make add-sensor NAME=living_room IP=192.168.1.50'"
 	@echo "----------------------------------------"
 
 install-influx:
-	bash scripts/setup_influx.sh
+	bash scripts/install_influx.sh
 
 install-grafana:
-	bash scripts/setup_grafana.sh
+	bash scripts/install_grafana.sh
 
 install-provisioning:
 	@echo "Provisioning Grafana..."
@@ -77,7 +84,13 @@ install-provisioning:
 	sudo systemctl restart grafana-server
 
 install: build
-	sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
+	@echo "Stopping any running atmos services..."
+	@-sudo systemctl stop "atmos@*"
+	@sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
+	@echo "Restarting enabled atmos services..."
+	@# This finds all enabled atmos@ services and starts them
+	@-systemctl list-unit-files "atmos@*" | grep enabled | cut -d' ' -f1 | xargs -r sudo systemctl start
+
 
 install-service: install
 	@echo "Installing systemd service template..."
@@ -87,20 +100,31 @@ install-service: install
 	sudo systemctl daemon-reload
 	@echo "Service template installed."
 
-init-auth:
-	@if [ -z "$(USER)" ] || [ -z "$(PASS)" ]; then echo "Error: USER and PASS are required. Usage: make init-auth USER=name PASS=password"; exit 1; fi
-	bash scripts/init_influx.sh $(USER) $(PASS)
+config-influx:
+	@if [ -z "$(INFLUX_USER)" ] || [ -z "$(INFLUX_PASS)" ]; then \
+		echo "Error: INFLUX_USER and INFLUX_PASS are required."; \
+		echo "Usage: make config-influx INFLUX_USER=name INFLUX_PASS=password"; \
+		exit 1; \
+	fi
+	bash scripts/config_influx.sh $(INFLUX_USER) $(INFLUX_PASS)
 
-init-grafana:
-	@if [ -z "$(PASS)" ]; then echo "Error: PASS is required. Usage: make init-grafana PASS=your_password"; exit 1; fi
-	GRAFANA_PASS=$(PASS) bash scripts/import_grafana.sh
+config-grafana:
+	@if [ -z "$(GRAFANA_PASS)" ]; then \
+		echo "Error: GRAFANA_PASS is required."; \
+		echo "Usage: make config-grafana GRAFANA_PASS=your_password"; \
+		exit 1; \
+	fi
+	GRAFANA_PASS=$(GRAFANA_PASS) bash scripts/config_grafana.sh
 
 # --- Sensor Management ---
-setup-sensor:
-	@if [ -z "$(NAME)" ]; then echo "Error: NAME is required. Usage: make setup-sensor NAME=room_name [IP=... SERIAL=...]"; exit 1; fi
-	@echo "Setting up sensor for: $(NAME)"
+add-sensor:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required."; \
+		echo "Usage: make add-sensor NAME=room_name [IP=... SERIAL=...]"; \
+		exit 1; \
+	fi
+	@echo "Adding sensor: $(NAME)"
 	@sudo mkdir -p /etc/atmos
-	@# If IP or SERIAL is provided, always (re)create the file. Otherwise only create if missing.
 	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ] || [ ! -f /etc/atmos/$(NAME).env ]; then \
 		echo "# Identity flags for atmos@$(NAME).service" | sudo tee /etc/atmos/$(NAME).env > /dev/null; \
 		if [ ! -z "$(SERIAL)" ]; then \
@@ -114,19 +138,27 @@ setup-sensor:
 			echo "SENSOR_SERIAL=CHANGE_ME" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
 			echo "# SENSOR_IP=192.168.1.100" | sudo tee -a /etc/atmos/$(NAME).env > /dev/null; \
 		fi; \
-		echo "Configuration (re)set in /etc/atmos/$(NAME).env"; \
+		echo "Configuration saved to /etc/atmos/$(NAME).env"; \
 	fi
 	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ] || grep -qv "CHANGE_ME" /etc/atmos/$(NAME).env 2>/dev/null; then \
 		sudo systemctl enable --now atmos@$(NAME) > /dev/null 2>&1; \
 		sudo systemctl restart atmos@$(NAME); \
-		echo "Sensor atmos@$(NAME) started/restarted. Check logs with: journalctl -u atmos@$(NAME) -f"; \
+		echo "Sensor atmos@$(NAME) is active. Check logs: journalctl -u atmos@$(NAME) -f"; \
 	else \
 		echo "Template created at /etc/atmos/$(NAME).env. Please edit it, then run:"; \
 		echo "  sudo systemctl enable --now atmos@$(NAME)"; \
 	fi
 
-setup-dashboard:
-	bash scripts/import_grafana.sh
+remove-sensor:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required."; \
+		echo "Usage: make remove-sensor NAME=room_name"; \
+		exit 1; \
+	fi
+	@echo "Removing sensor: $(NAME)"
+	-sudo systemctl disable --now atmos@$(NAME)
+	-sudo rm -f /etc/atmos/$(NAME).env
+	@echo "Sensor $(NAME) removed."
 
 # --- Maintenance & Cleanup ---
 status:
@@ -158,9 +190,9 @@ status:
 vacuum:
 	bash scripts/vacuum.sh $(DAYS)
 
-clean-data:
+delete-data:
 	@if [ -z "$(START)" ] || [ -z "$(STOP)" ]; then \
-		echo "Error: START and STOP are required. Usage: make clean-data START=... STOP=..."; \
+		echo "Error: START and STOP are required. Usage: make delete-data START=... STOP=..."; \
 		exit 1; \
 	fi
 	influx delete --bucket air_quality --org atmos --start $(START) --stop $(STOP) $(if $(PREDICATE),--predicate '$(PREDICATE)')
