@@ -50,7 +50,13 @@ lint:
 	fi
 
 # --- Installation & Setup ---
-install-stack: install-influx install-grafana install-provisioning install-service
+install-stack:
+	@echo "Refreshing sudo credentials..."
+	@sudo -v
+	$(MAKE) install-influx
+	$(MAKE) install-grafana
+	$(MAKE) install-provisioning
+	$(MAKE) install-service
 	@echo ""
 	@echo "--- Bare Metal Installation Complete! ---"
 	@echo "Next Steps:"
@@ -77,7 +83,11 @@ install-provisioning:
 	sudo systemctl restart grafana-server
 
 install: build
+	@echo "Stopping any running atmos services..."
+	-sudo systemctl stop "atmos@*"
 	sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
+	@# Only restart services that were previously enabled
+	-sudo systemctl start "atmos@*"
 
 install-service: install
 	@echo "Installing systemd service template..."

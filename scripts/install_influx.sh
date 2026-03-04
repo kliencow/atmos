@@ -12,8 +12,8 @@ fi
 
 echo "--- Bootstrapping InfluxDB ---"
 
-# Add GPG key
-curl -fLs https://repos.influxdata.com/influxdata-archive.key | sudo gpg --dearmor -o /usr/share/keyrings/influxdata-archive.gpg
+# Add GPG key (force overwrite to avoid interactive prompt)
+curl -fLs https://repos.influxdata.com/influxdata-archive.key | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/influxdata-archive.gpg
 
 # Add repository using 'debian stable' path (compatible with Ubuntu 24.x/25.x)
 echo "deb [signed-by=/usr/share/keyrings/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main" | sudo tee /etc/apt/sources.list.d/influxdata.list
