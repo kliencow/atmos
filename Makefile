@@ -61,7 +61,7 @@ install-stack:
 	@echo "--- Bare Metal Installation Complete! ---"
 	@echo "Next Steps:"
 	@echo "1. Run 'make config-influx INFLUX_USER=admin INFLUX_PASS=password'"
-	@echo "2. Run 'make config-grafana GRAFANA_PASS=your_grafana_password'"
+	@echo "2. Run 'make config-grafana GRAFANA_PASS=admin'"
 	@echo "3. Run 'make add-sensor NAME=living_room IP=192.168.1.50'"
 	@echo "----------------------------------------"
 
