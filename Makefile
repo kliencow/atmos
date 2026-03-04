@@ -85,10 +85,12 @@ install-provisioning:
 
 install: build
 	@echo "Stopping any running atmos services..."
-	-sudo systemctl stop "atmos@*"
-	sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
-	@# Only restart services that were previously enabled
-	-sudo systemctl start "atmos@*"
+	@-sudo systemctl stop "atmos@*"
+	@sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
+	@echo "Restarting enabled atmos services..."
+	@# This finds all enabled atmos@ services and starts them
+	@-systemctl list-unit-files "atmos@*" | grep enabled | cut -d' ' -f1 | xargs -r sudo systemctl start
+
 
 install-service: install
 	@echo "Installing systemd service template..."

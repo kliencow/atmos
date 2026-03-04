@@ -68,6 +68,9 @@ make add-sensor NAME=living_room IP=192.168.1.50
 
 # Register via Serial (mDNS)
 make add-sensor NAME=bedroom SERIAL=12345
+
+# Remove a sensor
+make remove-sensor NAME=old_room
 ```
 
 ### 4. Verify the Sensors
