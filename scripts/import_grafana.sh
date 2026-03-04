@@ -10,7 +10,9 @@ if [ -f .env ]; then
 fi
 
 GRAFANA_URL="http://localhost:3000"
-AUTH="admin:admin"
+GRAFANA_USER=${GRAFANA_USER:-admin}
+GRAFANA_PASS=${GRAFANA_PASS:-admin}
+AUTH="$GRAFANA_USER:$GRAFANA_PASS"
 DS_UID="P951FEA4DE68E13C5"
 
 echo "--- Waiting for Grafana to be ready... ---"

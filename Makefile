@@ -2,7 +2,7 @@
 # Focuses on native systemd deployment for Linux (e.g. Raspberry Pi)
 
 .PHONY: build test fmt vet lint help \
-        install install-service setup-system init-auth \
+        install install-service setup-system init-auth init-grafana \
         setup-sensor setup-dashboard status \
         vacuum clean-data clean
 
@@ -21,8 +21,8 @@ help:
 	@echo "Setup Targets (Run in order):"
 	@echo "  make setup-system    - 1. Install InfluxDB, Grafana, and service templates"
 	@echo "  make init-auth       - 2. One-click Influx setup (USER=name PASS=pass)"
-	@echo "  make setup-sensor    - 3. Register a sensor (NAME=room [IP=... or SERIAL=...])"
-	@echo "  make setup-dashboard - 4. Sync the latest dashboard via Grafana API"
+	@echo "  make init-grafana    - 3. Sync dashboard with Grafana (PASS=admin_pass)"
+	@echo "  make setup-sensor    - 4. Register a sensor (NAME=room [IP=... or SERIAL=...])"
 	@echo ""
 	@echo "Maintenance Targets:"
 	@echo "  make status          - Check health status of all components"
@@ -55,8 +55,8 @@ setup-system: install-influx install-grafana install-provisioning install-servic
 	@echo "--- Bare Metal Installation Complete! ---"
 	@echo "Next Steps:"
 	@echo "1. Run 'make init-auth USER=admin PASS=password' to initialize your database."
-	@echo "2. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
-	@echo "3. Run 'make setup-dashboard' to finalize the UI."
+	@echo "2. Run 'make init-grafana PASS=your_grafana_admin_password' to sync the dashboard."
+	@echo "3. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
 	@echo "----------------------------------------"
 
 install-influx:
@@ -90,6 +90,10 @@ install-service: install
 init-auth:
 	@if [ -z "$(USER)" ] || [ -z "$(PASS)" ]; then echo "Error: USER and PASS are required. Usage: make init-auth USER=name PASS=password"; exit 1; fi
 	bash scripts/init_influx.sh $(USER) $(PASS)
+
+init-grafana:
+	@if [ -z "$(PASS)" ]; then echo "Error: PASS is required. Usage: make init-grafana PASS=your_password"; exit 1; fi
+	GRAFANA_PASS=$(PASS) bash scripts/import_grafana.sh
 
 # --- Sensor Management ---
 setup-sensor:
