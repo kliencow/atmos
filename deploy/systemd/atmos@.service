@@ -16,8 +16,14 @@ EnvironmentFile=-DIR_PLACEHOLDER/.env
 # 2. Load instance-specific config (SENSOR_IP or SENSOR_SERIAL)
 EnvironmentFile=-/etc/atmos/%i.env
 
-# 3. Use %i as the location tag automatically
-ExecStart=/usr/local/bin/atmos collect --location %i --interval 1m
+# 3. Identity via Flags
+# InfluxDB/Global credentials come from .env, Identity comes from flags here.
+# Note: ${VAR} syntax allows using variables loaded from EnvironmentFiles.
+ExecStart=/usr/local/bin/atmos collect \
+  --location %i \
+  --ip ${SENSOR_IP} \
+  --serial ${SENSOR_SERIAL} \
+  --interval 1m
 
 [Install]
 WantedBy=multi-user.target

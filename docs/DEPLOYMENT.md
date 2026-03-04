@@ -14,13 +14,12 @@ This guide provides step-by-step instructions for setting up the **Atmos** monit
 | **Go** | 1.21+ | 1.22+ |
 
 ---
-
 ## Initial Setup
 
 You can choose between a **Docker-based** deployment (recommended for ease of use) or a **Native** deployment on a Linux host (e.g., a Raspberry Pi).
 
-### 1. Environment Configuration
-Regardless of the deployment method, start by creating your environment file:
+### 1. Global Infrastructure Configuration
+Regardless of the deployment method, start by creating your global infrastructure file. This file contains the credentials for your database.
 
 ```bash
 cp .env.example .env
@@ -35,7 +34,7 @@ cp .env.example .env
 
 ## Multi-Sensor Deployment (Native)
 
-Atmos uses **systemd templates** to run multiple collectors (one per room) from a single binary and service file.
+Atmos uses **systemd templates** to run multiple collectors (one per room). 
 
 ### 1. Install the Atmos Binary
 ```bash
@@ -50,22 +49,33 @@ sudo cp deploy/systemd/atmos@.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
-### 3. Configure Your Locations
-For each AirGradient sensor, create a configuration file in `/etc/atmos/`. The filename will be used as the **Location Tag** in Grafana.
+### 3. Identity Configuration (Per Sensor)
+For each AirGradient sensor, create a small environment file in `/etc/atmos/`. This file provides the "Identity" flags to the collector service.
 
 **Example: `/etc/atmos/living_room.env`**
 ```bash
-# Use either IP or Serial (for mDNS)
+# Provide either IP or Serial
 SENSOR_SERIAL=12345
 # SENSOR_IP=192.168.1.50
 ```
 
 ### 4. Start the Collectors
-Enable and start the service instance for each location:
+The service automatically uses the filename (e.g., `living_room`) as the **Location Tag** in Grafana. You can use the `Makefile` to quickly register new sensors:
 
 ```bash
-sudo systemctl enable --now atmos@living_room
-sudo systemctl enable --now atmos@bedroom
+# Register via IP
+make setup-sensor NAME=living_room IP=192.168.1.50
+
+# Register via Serial (mDNS)
+make setup-sensor NAME=bedroom SERIAL=12345
+```
+
+Check the status or logs for a specific sensor:
+```bash
+sudo systemctl status atmos@living_room
+journalctl -u atmos@living_room -f
+```
+
 ```
 
 ---
@@ -91,9 +101,28 @@ bash scripts/import_grafana.sh
 
 ---
 
-## Troubleshooting
+## Troubleshooting & Health Checks
 
-### **Check Logs for a Specific Location**
+The primary tool for verifying your installation is the **Status Command**. It checks the database, the dashboard, and every individual sensor collector.
+
+```bash
+make status
+```
+
+### **Understanding the Status Report**
+- **Stack Checks**: Verifies InfluxDB and Grafana APIs are responsive.
+- **`[Reachable]`**: Atmos just performed a real-time connection check to the sensor's Local API.
+- **`[Unreachable]`**: The sensor is likely offline or on a different VLAN/subnet.
+
+#### **Status Glossary (systemd)**
+| State | Sub-state | Meaning |
+| :--- | :--- | :--- |
+| **`active`** | **`running`** | **Normal**. The collector is in memory and polling data. |
+| **`active`** | **`exited`** | **Success**. Used for "one-shot" mode where Atmos ran once and finished. |
+| **`failed`** | **`failed`** | **Error**. The process crashed or could not start (check logs). |
+| **`inactive`**| **`dead`** | **Stopped**. The service has been manually disabled or stopped. |
+
+### **Check Logs for a Specific Sensor**
 ```bash
 journalctl -u atmos@living_room -f
 ```

@@ -37,11 +37,14 @@ To use Atmos, you'll need the following:
 
 ### Multi-Sensor Setup
 
-Atmos is designed to handle multiple AirGradient stations. By providing a `--location` tag, data from different sensors is automatically grouped in Grafana.
+Atmos is designed to handle multiple AirGradient stations. For simple setups, use the global `.env` file. For permanent multi-sensor deployments, create a unique configuration file for each sensor in `/etc/atmos/` (see [Deployment Guide](docs/DEPLOYMENT.md#multi-sensor-deployment-native)).
+
+Each sensor is tagged with a location to group data in Grafana.
 
 ```bash
 # Start a collector for the Living Room
 ./atmos collect --serial 12345 --location "Living Room" --interval 1m
+```
 
 # Start another for the Bedroom
 ./atmos collect --serial 67890 --location "Bedroom" --interval 1m
@@ -61,9 +64,9 @@ The fastest way to get your environment live is using our Docker Compose stack. 
 git clone https://github.com/kliencow/atmos.git && cd atmos
 docker-compose up -d
 
-# 2. Configure your sensor
+# 2. Configure your credentials
 cp .env.example .env
-# Edit .env with your SENSOR_IP and INFLUX_TOKEN
+# Edit .env with your INFLUX_TOKEN
 ```
 
 #### Option B: Manual (Bare Metal)
@@ -76,9 +79,28 @@ make setup-system
 influx setup
 cp .env.example .env
 
-# 3. Finalize the Dashboard
+# 3. Register your sensors
+make setup-sensor NAME=living_room IP=192.168.1.50
+
+# 4. Finalize the Dashboard
 make setup-dashboard
 ```
+
+---
+
+### Health & Maintenance
+
+You can monitor the status of your entire stack using the built-in status command:
+
+```bash
+make status
+```
+
+**What the report tells you:**
+- **Stack Status**: Confirms if InfluxDB and Grafana are reachable and healthy.
+- **Service Status**: Shows if the background collector for a specific room is `active` and `running`.
+- **Connectivity**: Performs a real-time "ping" to the sensor's Local API. `[Reachable]` means Atmos can currently pull data.
+- **Identity**: Displays the configured IP or Serial for easy verification.
 
 ---
 
@@ -110,7 +132,6 @@ Atmos is powered by a structured, modern CLI built with [Cobra](https://github.c
 
 | Flag | Env Var | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `--location` | `SENSOR_LOCATION`| Location tag (e.g. living_room) | IP/Serial |
 | `--influx-url` | `INFLUX_URL` | InfluxDB URL | `http://localhost:8086` |
 | `--influx-token`| `INFLUX_TOKEN`| InfluxDB API Token | `""` |
 | `--influx-org` | `INFLUX_ORG` | InfluxDB Organization | `atmos` |

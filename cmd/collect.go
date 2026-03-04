@@ -83,9 +83,9 @@ var collectCmd = &cobra.Command{
 }
 
 func init() {
-	collectCmd.Flags().StringVar(&sensorIP, "ip", getEnv("SENSOR_IP", ""), "IP address of the sensor")
-	collectCmd.Flags().StringVar(&serial, "serial", getEnv("SENSOR_SERIAL", ""), "Serial number (for mDNS)")
-	collectCmd.Flags().StringVar(&location, "location", getEnv("SENSOR_LOCATION", ""), "Location name for the sensor (e.g. living_room)")
+	collectCmd.Flags().StringVar(&sensorIP, "ip", "", "IP address of the sensor")
+	collectCmd.Flags().StringVar(&serial, "serial", "", "Serial number (for mDNS)")
+	collectCmd.Flags().StringVar(&location, "location", "", "Location name for the sensor (e.g. living_room)")
 	collectCmd.Flags().DurationVar(&interval, "interval", 0, "Polling interval (e.g. 1m). If 0, runs once.")
 	collectCmd.Flags().BoolVar(&noHeaders, "no-headers", false, "Omit CSV headers")
 	collectCmd.Flags().BoolVar(&exitOnError, "exit-on-error", false, "Exit on reading error")

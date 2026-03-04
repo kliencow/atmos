@@ -1,4 +1,4 @@
-.PHONY: build test fmt vet lint install-service clean help install-influx install-grafana setup-all setup-dashboard setup-system install-provisioning setup-instance
+.PHONY: build test fmt vet lint install-service clean help install-influx install-grafana setup-all setup-dashboard setup-system install-provisioning setup-sensor
 
 BINARY_NAME=atmos
 SERVICE_TEMPLATE=atmos@.service
@@ -8,8 +8,9 @@ help:
 	@echo "  make build           - Build the Go binary"
 	@echo "  make test            - Run unit tests"
 	@echo "  make setup-system    - FULL INSTALL: Influx, Grafana, Provisioning, and Service Template"
-	@echo "  make setup-instance  - Create a new room instance (e.g. make setup-instance NAME=living_room)"
+	@echo "  make setup-sensor    - Register a sensor (e.g. make setup-sensor NAME=office IP=192.168.1.50)"
 	@echo "  make setup-dashboard - Sync the latest dashboard via Grafana API"
+	@echo "  make status          - Check health status of all components"
 	@echo "  make clean           - Remove binary and build artifacts"
 
 # --- Development ---
@@ -38,7 +39,7 @@ setup-system: install-influx install-grafana install-provisioning install-servic
 	@echo "--- Bare Metal Installation Complete! ---"
 	@echo "1. Run 'influx setup' to initialize your database."
 	@echo "2. Copy .env.example to .env and update with your new INFLUX_TOKEN."
-	@echo "3. Run 'make setup-instance NAME=living_room' to configure your first sensor."
+	@echo "3. Run 'make setup-sensor NAME=living_room IP=192.168.1.50' to configure your first sensor."
 	@echo "4. Run 'make setup-dashboard' to finalize the UI."
 	@echo "----------------------------------------"
 
@@ -70,20 +71,62 @@ install-service: install
 	sudo systemctl daemon-reload
 	@echo "Service template installed."
 
-# --- Instance-level Management ---
-setup-instance:
-	@if [ -z "$(NAME)" ]; then echo "Error: NAME is required. Usage: make setup-instance NAME=room_name"; exit 1; fi
-	@echo "Setting up instance for: $(NAME)"
+# --- Sensor-level Management ---
+setup-sensor:
+	@if [ -z "$(NAME)" ]; then echo "Error: NAME is required. Usage: make setup-sensor NAME=room_name [IP=192.168.1.10] [SERIAL=12345]"; exit 1; fi
+	@echo "Setting up sensor for: $(NAME)"
 	sudo mkdir -p /etc/atmos
 	@if [ ! -f /etc/atmos/$(NAME).env ]; then \
-		echo "SENSOR_SERIAL=CHANGE_ME" | sudo tee /etc/atmos/$(NAME).env; \
-		echo "Created /etc/atmos/$(NAME).env - Please edit it with your sensor details."; \
+		echo "# Identity flags for atmos@$(NAME).service" | sudo tee /etc/atmos/$(NAME).env; \
+		if [ ! -z "$(SERIAL)" ]; then \
+			echo "SENSOR_SERIAL=$(SERIAL)" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "# SENSOR_IP=" | sudo tee -a /etc/atmos/$(NAME).env; \
+		elif [ ! -z "$(IP)" ]; then \
+			echo "SENSOR_IP=$(IP)" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "# SENSOR_SERIAL=" | sudo tee -a /etc/atmos/$(NAME).env; \
+		else \
+			echo "# Provide either SENSOR_SERIAL (mDNS) or SENSOR_IP" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "SENSOR_SERIAL=CHANGE_ME" | sudo tee -a /etc/atmos/$(NAME).env; \
+			echo "# SENSOR_IP=192.168.1.100" | sudo tee -a /etc/atmos/$(NAME).env; \
+		fi; \
+		echo "Created /etc/atmos/$(NAME).env"; \
 	fi
-	sudo systemctl enable --now atmos@$(NAME)
-	@echo "Instance atmos@$(NAME) started. Check logs with: journalctl -u atmos@$(NAME) -f"
+	@if [ ! -z "$(SERIAL)" ] || [ ! -z "$(IP)" ]; then \
+		sudo systemctl enable --now atmos@$(NAME); \
+		echo "Sensor atmos@$(NAME) started. Check logs with: journalctl -u atmos@$(NAME) -f"; \
+	else \
+		echo "Template created at /etc/atmos/$(NAME).env. Please edit it, then run:"; \
+		echo "  sudo systemctl enable --now atmos@$(NAME)"; \
+	fi
 
 setup-dashboard:
 	bash scripts/import_grafana.sh
+
+status:
+	@echo "--- Atmos Stack Status ---"
+	@echo -n "InfluxDB: "
+	@curl -s http://localhost:8086/health | grep -q '"status":"pass"' && echo "PASS (Healthy)" || echo "FAIL (Down)"
+	@echo -n "Grafana:  "
+	@curl -sL --fail http://localhost:3000/api/health | grep -qi "ok" && echo "PASS (Healthy)" || echo "FAIL (Down)"
+	@echo ""
+	@echo "--- Active Sensors ---"
+	@systemctl list-units "atmos@*" --no-legend --all | while read -r unit load active sub rest; do \
+		name=$$(echo $$unit | sed -e 's/atmos@//' -e 's/\.service//'); \
+		config="/etc/atmos/$$name.env"; \
+		if [ -f "$$config" ]; then \
+			ip=$$(grep "^SENSOR_IP=" "$$config" | cut -d= -f2); \
+			ser=$$(grep "^SENSOR_SERIAL=" "$$config" | cut -d= -f2); \
+			addr="$$ip"; \
+			[ ! -z "$$ser" ] && addr="airgradient_$$ser.local"; \
+			reach="[Unreachable]"; \
+			[ ! -z "$$addr" ] && curl -s -m 2 -o /dev/null --fail "http://$$addr/measures/current" && reach="[Reachable]"; \
+			details=""; \
+			[ ! -z "$$ip" ] && details="IP: $$ip"; \
+			[ ! -z "$$ser" ] && [ ! -z "$$details" ] && details="$$details, "; \
+			[ ! -z "$$ser" ] && details="$${details}Serial: $$ser"; \
+			printf "  %-18s %-10s %-10s %-14s %s\n" "[$$name]" "$$active" "$$sub" "$$reach" "$$details"; \
+		fi; \
+	done || echo "  No active sensors found."
 
 clean:
 	rm -f $(BINARY_NAME)
