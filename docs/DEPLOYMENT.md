@@ -135,6 +135,18 @@ make status
 journalctl -u atmos@living_room -f
 ```
 
+### **Cleaning Up Erroneous Data**
+If you see spikes in your dashboard (e.g., from sensor calibration), you can surgically delete data points using the `clean-data` target.
+
+```bash
+# Delete all data in a 2-minute window
+make clean-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z
+
+# Delete data for a specific location only
+make clean-data START=2026-03-03T03:57:00Z STOP=2026-03-03T03:59:00Z PREDICATE='location="office"'
+```
+*Note: Timestamps must be in RFC3339 format (UTC is recommended).*
+
 ### **Organization Not Found**
 Ensure `INFLUX_ORG` in your `.env` matches your InfluxDB setup. Atmos expects the organization to be named `atmos` by default.
 
