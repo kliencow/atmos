@@ -117,13 +117,26 @@ func printRow(data sensor.AGData, sysTemp *float64) {
 		sysTempStr = fmt.Sprintf("%.1f", *sysTemp)
 	}
 
-	fmt.Printf("%s,%.0f,%.0f,%.1f,%.1f,%.0f,%.1f,%s\n",
+	tempStr := fmt.Sprintf("%.1f", data.Temp)
+	if data.Temp == 0 {
+		tempStr = "N/A"
+	}
+	humStr := fmt.Sprintf("%.1f", data.Humidity)
+	if data.Humidity == 0 {
+		humStr = "N/A"
+	}
+	co2Str := fmt.Sprintf("%.0f", data.CO2)
+	if data.CO2 == 0 {
+		co2Str = "N/A"
+	}
+
+	fmt.Printf("%s,%.0f,%.0f,%s,%s,%s,%.1f,%s\n",
 		time.Now().Format(time.RFC3339),
 		data.VOC,
 		data.NOX,
-		data.Temp,
-		data.Humidity,
-		data.CO2,
+		tempStr,
+		humStr,
+		co2Str,
 		data.PM25,
 		sysTempStr,
 	)

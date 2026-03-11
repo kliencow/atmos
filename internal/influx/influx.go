@@ -33,16 +33,25 @@ func (c *Client) Close() {
 // Write records sensor data and optional system temperature to InfluxDB
 func (c *Client) Write(ctx context.Context, location string, sensor string, data sensor.AGData, sysTemp *float64) error {
 	fields := map[string]interface{}{
-		"voc":      data.VOC,
-		"nox":      data.NOX,
-		"temp":     data.Temp,
-		"humidity": data.Humidity,
-		"co2":      data.CO2,
-		"pm01":     data.PM01,
-		"pm25":     data.PM25,
-		"pm10":     data.PM10,
-		"pm003":    data.PM003,
+		"voc":   data.VOC,
+		"nox":   data.NOX,
+		"pm01":  data.PM01,
+		"pm25":  data.PM25,
+		"pm10":  data.PM10,
+		"pm003": data.PM003,
 	}
+
+	// Only include these fields if they are non-zero to avoid graph artifacts
+	if data.Temp != 0 {
+		fields["temp"] = data.Temp
+	}
+	if data.Humidity != 0 {
+		fields["humidity"] = data.Humidity
+	}
+	if data.CO2 != 0 {
+		fields["co2"] = data.CO2
+	}
+
 	if sysTemp != nil {
 		fields["sys_temp"] = *sysTemp
 	}
