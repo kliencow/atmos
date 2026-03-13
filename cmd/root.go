@@ -16,7 +16,7 @@ var (
 	influxOrg    string
 	influxBucket string
 	debug        bool
-	Version      = "dev"
+	Version      = "v1.0.1"
 )
 
 var rootCmd = &cobra.Command{

@@ -7,7 +7,7 @@
         status vacuum delete-data clean
 
 # --- Variables ---
-VERSION=v1.0.0
+VERSION=v1.0.1
 BINARY_NAME=atmos
 SERVICE_TEMPLATE=atmos@.service
 INSTALL_PATH=/usr/local/bin
