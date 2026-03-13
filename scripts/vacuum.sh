@@ -32,28 +32,47 @@ from(bucket: \"$BUCKET\")
   |> derivative(unit: 1m, nonNegative: false)
   |> filter(fn: (r) => math.abs(x: r._value) > float(v: $THRESHOLD))"
 
-        # Get raw timestamps using awk to find the _time column
-        SPIKES=$(influx query "$QUERY" --org "$ORG" --raw | awk -F, '
+        # Get raw data including tags using awk
+        # Output format: TIME|LOCATION|SENSOR
+        DATA=$(influx query "$QUERY" --org "$ORG" --raw | awk -F, '
             NR==1 { next } 
             /^#group/ { next } 
             /^#default/ { next } 
             /^#datatype/ { 
-                for(i=1;i<=NF;i++) if($i=="dateTime:RFC3339" || $i=="dateTime:RFC3339Nano") time_col=i 
+                for(i=1;i<=NF;i++) {
+                    if($i=="dateTime:RFC3339" || $i=="dateTime:RFC3339Nano") time_col=i 
+                    if($i=="string" || $i=="tag") {
+                        # We will look for specific tag names in the header row
+                    }
+                }
                 next 
             } 
             /^,result/ { 
-                if (!time_col) for(i=1;i<=NF;i++) if($i=="_time") time_col=i
+                for(i=1;i<=NF;i++) {
+                    if($i=="_time") time_col=i
+                    if($i=="location") loc_col=i
+                    if($i=="sensor") sen_col=i
+                }
                 next 
             }
-            { if (time_col && $time_col ~ /[0-9]/) print $time_col }
+            { 
+                if (time_col && $time_col ~ /[0-9]/) {
+                    loc = (loc_col ? $loc_col : "")
+                    sen = (sen_col ? $sen_col : "")
+                    print $time_col "|" loc "|" sen
+                }
+            }
         ' || true)
         
-        if [ -n "$SPIKES" ]; then
-            COUNT=$(echo "$SPIKES" | wc -l)
+        if [ -n "$DATA" ]; then
+            COUNT=$(echo "$DATA" | wc -l)
             echo "Found $COUNT spikes in $FIELD. Deleting..."
-            for TIME in $SPIKES; do
-                echo "  Deleting spike at $TIME"
-                influx delete --bucket "$BUCKET" --org "$ORG" --start "$TIME" --stop "$TIME" --predicate "_field=\"$FIELD\""
+            echo "$DATA" | while IFS='|' read -r TIME LOC SEN; do
+                echo "  Deleting spike at $TIME (Location: $LOC, Sensor: $SEN)"
+                # Delete by tags instead of field, as some InfluxDB versions dont support field predicates
+                PRED="location=\"$LOC\""
+                [ -n "$SEN" ] && PRED="$PRED AND sensor=\"$SEN\""
+                influx delete --bucket "$BUCKET" --org "$ORG" --start "$TIME" --stop "$TIME" --predicate "$PRED"
             done
         else
             echo "No spikes found in $FIELD."
@@ -69,7 +88,7 @@ from(bucket: \"$BUCKET\")
   |> filter(fn: (r) => r._field == \"$FIELD\")
   |> filter(fn: (r) => r._value == 0.0)"
 
-        ZEROS=$(influx query "$ZERO_QUERY" --org "$ORG" --raw | awk -F, '
+        ZERO_DATA=$(influx query "$ZERO_QUERY" --org "$ORG" --raw | awk -F, '
             NR==1 { next } 
             /^#group/ { next } 
             /^#default/ { next } 
@@ -78,18 +97,30 @@ from(bucket: \"$BUCKET\")
                 next 
             } 
             /^,result/ { 
-                if (!time_col) for(i=1;i<=NF;i++) if($i=="_time") time_col=i
+                for(i=1;i<=NF;i++) {
+                    if($i=="_time") time_col=i
+                    if($i=="location") loc_col=i
+                    if($i=="sensor") sen_col=i
+                }
                 next 
             }
-            { if (time_col && $time_col ~ /[0-9]/) print $time_col }
+            { 
+                if (time_col && $time_col ~ /[0-9]/) {
+                    loc = (loc_col ? $loc_col : "")
+                    sen = (sen_col ? $sen_col : "")
+                    print $time_col "|" loc "|" sen
+                }
+            }
         ' || true)
 
-        if [ -n "$ZEROS" ]; then
-            COUNT=$(echo "$ZEROS" | wc -l)
+        if [ -n "$ZERO_DATA" ]; then
+            COUNT=$(echo "$ZERO_DATA" | wc -l)
             echo "Found $COUNT zero points in $FIELD. Deleting..."
-            for TIME in $ZEROS; do
-                echo "  Deleting zero point at $TIME"
-                influx delete --bucket "$BUCKET" --org "$ORG" --start "$TIME" --stop "$TIME" --predicate "_field=\"$FIELD\""
+            echo "$ZERO_DATA" | while IFS='|' read -r TIME LOC SEN; do
+                echo "  Deleting zero point at $TIME (Location: $LOC, Sensor: $SEN)"
+                PRED="location=\"$LOC\""
+                [ -n "$SEN" ] && PRED="$PRED AND sensor=\"$SEN\""
+                influx delete --bucket "$BUCKET" --org "$ORG" --start "$TIME" --stop "$TIME" --predicate "$PRED"
             done
         else
             echo "No zero points found in $FIELD."
