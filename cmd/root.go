@@ -16,11 +16,13 @@ var (
 	influxOrg    string
 	influxBucket string
 	debug        bool
+	Version      = "dev"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "atmos",
-	Short: "Atmos polls AirGradient sensors and sends data to time-series backends",
+	Use:     "atmos",
+	Short:   "Atmos polls AirGradient sensors and sends data to time-series backends",
+	Version: Version,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if err := godotenv.Load(); err != nil {
 			if !os.IsNotExist(err) {

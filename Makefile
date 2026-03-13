@@ -7,6 +7,7 @@
         status vacuum delete-data clean
 
 # --- Variables ---
+VERSION=v1.0.0
 BINARY_NAME=atmos
 SERVICE_TEMPLATE=atmos@.service
 INSTALL_PATH=/usr/local/bin
@@ -15,7 +16,7 @@ SYSTEMD_PATH=/etc/systemd/system
 # --- Standard Targets ---
 help:
 	@echo "Atmos Management - Usage:"
-	@echo "  make build           - Build the Go binary"
+	@echo "  make build           - Build the Go binary (VERSION=$(VERSION))"
 	@echo "  make test            - Run unit tests"
 	@echo ""
 	@echo "Setup Targets (Run in order):"
@@ -29,10 +30,11 @@ help:
 	@echo "  make status          - Check health status of all components"
 	@echo "  make vacuum          - Auto-clean spikes based on .env thresholds (DAYS=7)"
 	@echo "  make delete-data     - Wipe specific time range (START=... STOP=...)"
+	@echo "  make install-atmos   - Rebuild and reinstall the atmos binary"
 	@echo "  make clean           - Remove binary and build artifacts"
 
 build: fmt vet
-	go build -o $(BINARY_NAME) ./cmd/atmos
+	go build -ldflags "-X github.com/kliencow/atmos/cmd.Version=$(VERSION)" -o $(BINARY_NAME) ./cmd/atmos
 
 test:
 	go test -v ./...
@@ -161,8 +163,15 @@ remove-sensor:
 	@echo "Sensor $(NAME) removed."
 
 # --- Maintenance & Cleanup ---
+install-atmos: install
+
 status:
 	@echo "--- Atmos Stack Status ---"
+	@if command -v $(BINARY_NAME) > /dev/null; then \
+		echo "Atmos Binary: $$(atmos --version)"; \
+	else \
+		echo "Atmos Binary: NOT INSTALLED"; \
+	fi
 	@echo -n "InfluxDB: "
 	@curl -s http://localhost:8086/health | grep -q '"status":"pass"' && echo "PASS (Healthy)" || echo "FAIL (Down)"
 	@echo -n "Grafana:  "
