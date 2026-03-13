@@ -90,8 +90,8 @@ install: build
 	@-sudo systemctl stop "atmos@*"
 	@sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
 	@echo "Restarting enabled atmos services..."
-	@# This finds all enabled atmos@ services and starts them
-	@-systemctl list-unit-files "atmos@*" | grep enabled | cut -d' ' -f1 | xargs -r sudo systemctl start
+	@# This finds all instantiated atmos@ units and starts them, excluding the template
+	@-systemctl list-units --all "atmos@*" --no-legend | awk '{print $$1}' | grep "@" | grep -v "@.service" | xargs -r sudo systemctl start
 
 
 install-service: install
